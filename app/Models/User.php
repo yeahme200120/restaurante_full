@@ -14,7 +14,9 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
+        'status',
     ];
 
     protected $hidden = [
@@ -27,6 +29,30 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'last_login_at' => 'datetime',
+            'last_activity_at' => 'datetime',
         ];
+    }
+
+    public function companies()
+    {
+        return $this->belongsToMany(
+            Company::class,
+            'user_company_assignments'
+        )->withPivot([
+            'is_default',
+            'status',
+        ])->withTimestamps();
+    }
+
+    public function branches()
+    {
+        return $this->belongsToMany(
+            Branch::class,
+            'user_branch_assignments'
+        )->withPivot([
+            'is_default',
+            'status',
+        ])->withTimestamps();
     }
 }
