@@ -48,4 +48,21 @@ class Company extends Model
             'status',
         ])->withTimestamps();
     }
+    public function companyModules()
+    {
+        return $this->hasMany(CompanyModule::class);
+    }
+
+    public function modules()
+    {
+        return $this->belongsToMany(
+            Module::class,
+            'company_modules'
+        )->withPivot([
+            'status',
+            'enabled_at',
+            'disabled_at',
+            'metadata',
+        ])->withTimestamps();
+    }
 }

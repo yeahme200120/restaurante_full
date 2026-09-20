@@ -33,4 +33,21 @@ class Module extends Model
     {
         return $this->hasMany(Section::class);
     }
+    public function companyModules()
+    {
+        return $this->hasMany(CompanyModule::class);
+    }
+
+    public function companies()
+    {
+        return $this->belongsToMany(
+            Company::class,
+            'company_modules'
+        )->withPivot([
+            'status',
+            'enabled_at',
+            'disabled_at',
+            'metadata',
+        ])->withTimestamps();
+    }
 }

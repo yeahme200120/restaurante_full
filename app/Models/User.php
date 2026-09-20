@@ -55,4 +55,21 @@ class User extends Authenticatable
             'status',
         ])->withTimestamps();
     }
+    public function userRoles()
+    {
+        return $this->hasMany(UserRole::class);
+    }
+
+    public function roles()
+    {
+        return $this->belongsToMany(
+            Role::class,
+            'user_roles'
+        )->withPivot([
+            'company_id',
+            'status',
+            'assigned_at',
+        ])->withTimestamps();
+    }
+
 }
