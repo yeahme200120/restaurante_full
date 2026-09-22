@@ -403,6 +403,45 @@ class PermissionSeeder extends Seeder
                 'section' => null,
                 'action' => 'create',
             ],
+
+            /*
+             * Usuarios
+             *
+             * Estos permisos corresponden a la administración de usuarios
+             * y forman parte del sistema base de autorización.
+             */
+            [
+                'code' => 'usuarios.view',
+                'name' => 'Consultar usuarios',
+                'description' => 'Permite consultar usuarios dentro del ámbito autorizado.',
+                'module' => 'usuarios',
+                'section' => null,
+                'action' => 'view',
+            ],
+            [
+                'code' => 'usuarios.create',
+                'name' => 'Crear usuario',
+                'description' => 'Permite crear usuarios dentro del ámbito autorizado.',
+                'module' => 'usuarios',
+                'section' => null,
+                'action' => 'create',
+            ],
+            [
+                'code' => 'usuarios.update',
+                'name' => 'Actualizar usuario',
+                'description' => 'Permite actualizar usuarios dentro del ámbito autorizado.',
+                'module' => 'usuarios',
+                'section' => null,
+                'action' => 'update',
+            ],
+            [
+                'code' => 'usuarios.delete',
+                'name' => 'Eliminar usuario',
+                'description' => 'Permite eliminar usuarios dentro del ámbito autorizado.',
+                'module' => 'usuarios',
+                'section' => null,
+                'action' => 'delete',
+            ],
         ];
 
         foreach ($permissions as $permission) {

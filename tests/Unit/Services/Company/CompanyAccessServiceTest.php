@@ -5,6 +5,7 @@ namespace Tests\Unit\Services\Company;
 use App\Models\Branch;
 use App\Models\Company;
 use App\Models\CompanyLicense;
+use App\Models\Role;
 use App\Models\User;
 use App\Services\Company\CompanyAccessService;
 use App\Services\Company\CompanyContextService;
@@ -259,6 +260,155 @@ class CompanyAccessServiceTest extends TestCase
         $service->resolve(
             $user,
             $company->id,
+            $otherBranch->id
+        );
+    }
+
+    public function test_global_super_admin_can_access_company_without_company_assignment(): void
+    {
+        $user = User::factory()->create([
+            'status' => 'activo',
+        ]);
+
+        $role = Role::create([
+            'code' => 'super_admin',
+            'name' => 'Super Admin',
+            'description' => 'Administrador global del sistema.',
+            'status' => 'activo',
+            'is_system' => true,
+            'scope' => 'global',
+        ]);
+
+        $user->userRoles()->create([
+            'role_id' => $role->id,
+            'company_id' => null,
+            'status' => 'activo',
+            'assigned_at' => now(),
+        ]);
+
+        $company = Company::create([
+            'name' => 'Empresa Super Admin',
+            'status' => 'activa',
+        ]);
+
+        CompanyLicense::create([
+            'company_id' => $company->id,
+            'license_key' => 'LIC-TEST-SUPER-001',
+            'plan' => 'standard',
+            'status' => 'activa',
+            'starts_at' => now()->subDay(),
+            'expires_at' => now()->addDay(),
+        ]);
+
+        $this->assertFalse(
+            $user->companies()->where('companies.id', $company->id)->exists()
+        );
+
+        $service = app(CompanyAccessService::class);
+
+        $this->assertTrue(
+            $service->userCanAccessCompany($user, $company)
+        );
+    }
+
+    public function test_global_super_admin_can_resolve_company_and_branch_but_not_cross_company_branch(): void
+    {
+        $user = User::factory()->create([
+            'status' => 'activo',
+        ]);
+
+        $role = Role::create([
+            'code' => 'super_admin',
+            'name' => 'Super Admin',
+            'description' => 'Administrador global del sistema.',
+            'status' => 'activo',
+            'is_system' => true,
+            'scope' => 'global',
+        ]);
+
+        $user->userRoles()->create([
+            'role_id' => $role->id,
+            'company_id' => null,
+            'status' => 'activo',
+            'assigned_at' => now(),
+        ]);
+
+        $company = Company::create([
+            'name' => 'Empresa Uno',
+            'status' => 'activa',
+        ]);
+
+        $otherCompany = Company::create([
+            'name' => 'Empresa Dos',
+            'status' => 'activa',
+        ]);
+
+        CompanyLicense::create([
+            'company_id' => $company->id,
+            'license_key' => 'LIC-TEST-SUPER-002',
+            'plan' => 'standard',
+            'status' => 'activa',
+            'starts_at' => now()->subDay(),
+            'expires_at' => now()->addDay(),
+        ]);
+
+        CompanyLicense::create([
+            'company_id' => $otherCompany->id,
+            'license_key' => 'LIC-TEST-SUPER-003',
+            'plan' => 'standard',
+            'status' => 'activa',
+            'starts_at' => now()->subDay(),
+            'expires_at' => now()->addDay(),
+        ]);
+
+        $branch = Branch::create([
+            'company_id' => $company->id,
+            'name' => 'Sucursal Uno',
+            'code' => 'SUPER-001',
+            'status' => 'activa',
+            'is_main' => true,
+        ]);
+
+        $otherBranch = Branch::create([
+            'company_id' => $otherCompany->id,
+            'name' => 'Sucursal Dos',
+            'code' => 'SUPER-002',
+            'status' => 'activa',
+            'is_main' => true,
+        ]);
+
+        $service = app(CompanyContextService::class);
+
+        $resolvedCompany = $service->resolveCompany(
+            $user,
+            $company->id
+        );
+
+        $resolvedOtherCompany = $service->resolveCompany(
+            $user,
+            $otherCompany->id
+        );
+
+        $this->assertSame($company->id, $resolvedCompany->id);
+        $this->assertSame($otherCompany->id, $resolvedOtherCompany->id);
+
+        $resolvedBranch = $service->resolveBranch(
+            $user,
+            $company,
+            $branch->id
+        );
+
+        $this->assertSame($branch->id, $resolvedBranch->id);
+        $this->assertSame($company->id, $resolvedBranch->company_id);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage(
+            'No existe una sucursal activa autorizada para el usuario.'
+        );
+
+        $service->resolveBranch(
+            $user,
+            $company,
             $otherBranch->id
         );
     }

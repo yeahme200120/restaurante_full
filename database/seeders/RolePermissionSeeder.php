@@ -108,6 +108,11 @@ class RolePermissionSeeder extends Seeder
 
                 'facturacion.view',
                 'facturacion.create',
+
+                'usuarios.view',
+                'usuarios.create',
+                'usuarios.update',
+                'usuarios.delete',
             ],
             $permissions
         );

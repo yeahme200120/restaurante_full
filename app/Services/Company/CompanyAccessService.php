@@ -5,6 +5,7 @@ namespace App\Services\Company;
 use App\Models\Company;
 use App\Models\CompanyLicense;
 use App\Models\User;
+use App\Services\Authorization\AuthorizationService;
 use Carbon\Carbon;
 
 class CompanyAccessService
@@ -40,6 +41,10 @@ class CompanyAccessService
         User $user,
         Company $company
     ): bool {
+        if (app(AuthorizationService::class)->hasRole($user, 'super_admin')) {
+            return true;
+        }
+
         return $user->companies()
             ->where('companies.id', $company->id)
             ->wherePivot('status', 'activa')
