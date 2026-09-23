@@ -25,7 +25,9 @@ class CompanyModuleServiceTest extends TestCase
 
     public function test_it_enables_a_module_for_a_company(): void
     {
-        $company = Company::factory()->create();
+        $company = Company::factory()->create([
+            'status' => 'activa',
+        ]);
         $module = Module::factory()->create();
 
         $companyModule = $this->service->enable(
@@ -50,7 +52,9 @@ class CompanyModuleServiceTest extends TestCase
 
     public function test_it_does_not_create_duplicate_when_module_is_already_enabled(): void
     {
-        $company = Company::factory()->create();
+        $company = Company::factory()->create([
+            'status' => 'activa',
+        ]);
         $module = Module::factory()->create();
 
         $first = $this->service->enable(
@@ -73,7 +77,9 @@ class CompanyModuleServiceTest extends TestCase
 
     public function test_it_disables_an_enabled_module(): void
     {
-        $company = Company::factory()->create();
+        $company = Company::factory()->create([
+            'status' => 'activa',
+        ]);
         $module = Module::factory()->create();
 
         $companyModule = $this->service->enable(
@@ -101,7 +107,9 @@ class CompanyModuleServiceTest extends TestCase
 
     public function test_it_rejects_disabling_a_module_that_is_not_enabled(): void
     {
-        $company = Company::factory()->create();
+        $company = Company::factory()->create([
+            'status' => 'activa',
+        ]);
         $module = Module::factory()->create();
 
         $this->expectException(\RuntimeException::class);
@@ -117,7 +125,9 @@ class CompanyModuleServiceTest extends TestCase
 
     public function test_it_reports_whether_a_module_is_enabled(): void
     {
-        $company = Company::factory()->create();
+        $company = Company::factory()->create([
+            'status' => 'activa',
+        ]);
         $module = Module::factory()->create();
 
         $this->assertFalse(
@@ -154,7 +164,9 @@ class CompanyModuleServiceTest extends TestCase
 
     public function test_it_returns_only_enabled_modules(): void
     {
-        $company = Company::factory()->create();
+        $company = Company::factory()->create([
+            'status' => 'activa',
+        ]);
 
         $enabledModule = Module::factory()->create([
             'sort_order' => 10,
@@ -192,19 +204,19 @@ class CompanyModuleServiceTest extends TestCase
 
         $this->assertTrue(
             $result->contains(
-                fn (Module $module) => $module->id === $enabledModule->id
+                fn(Module $module) => $module->id === $enabledModule->id
             )
         );
 
         $this->assertFalse(
             $result->contains(
-                fn (Module $module) => $module->id === $disabledModule->id
+                fn(Module $module) => $module->id === $disabledModule->id
             )
         );
 
         $this->assertFalse(
             $result->contains(
-                fn (Module $module) => $module->id === $inactiveGlobalModule->id
+                fn(Module $module) => $module->id === $inactiveGlobalModule->id
             )
         );
     }
@@ -230,7 +242,9 @@ class CompanyModuleServiceTest extends TestCase
 
     public function test_it_rejects_an_inactive_global_module(): void
     {
-        $company = Company::factory()->create();
+        $company = Company::factory()->create([
+            'status' => 'activa',
+        ]);
 
         $module = Module::factory()->create([
             'status' => 'inactivo',
@@ -249,7 +263,9 @@ class CompanyModuleServiceTest extends TestCase
 
     public function test_it_returns_a_company_module_configuration(): void
     {
-        $company = Company::factory()->create();
+        $company = Company::factory()->create([
+            'status' => 'activa',
+        ]);
         $module = Module::factory()->create();
 
         $this->assertNull(
@@ -279,7 +295,9 @@ class CompanyModuleServiceTest extends TestCase
 
     public function test_it_reenables_a_disabled_module_without_creating_a_duplicate(): void
     {
-        $company = Company::factory()->create();
+        $company = Company::factory()->create([
+            'status' => 'activa',
+        ]);
         $module = Module::factory()->create();
 
         $created = $this->service->enable(
@@ -323,7 +341,9 @@ class CompanyModuleServiceTest extends TestCase
 
     public function test_it_records_audit_when_module_is_enabled(): void
     {
-        $company = Company::factory()->create();
+        $company = Company::factory()->create([
+            'status' => 'activa',
+        ]);
         $module = Module::factory()->create();
 
         $this->service->enable(
@@ -339,7 +359,9 @@ class CompanyModuleServiceTest extends TestCase
 
     public function test_it_records_audit_when_module_is_disabled(): void
     {
-        $company = Company::factory()->create();
+        $company = Company::factory()->create([
+            'status' => 'activa',
+        ]);
         $module = Module::factory()->create();
 
         $this->service->enable(

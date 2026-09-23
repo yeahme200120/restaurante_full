@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\ModuleController;
+use App\Http\Controllers\Api\V1\SectionController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -40,6 +42,7 @@ Route::prefix('v1')->group(function () {
             UserController::class,
             'store',
         ])->middleware('permission:usuarios.create');
+
         Route::match(['put', 'patch'], '/users/{user}', [
             UserController::class,
             'update',
@@ -49,5 +52,30 @@ Route::prefix('v1')->group(function () {
             UserController::class,
             'destroy',
         ])->middleware('permission:usuarios.delete');
+
+        Route::get('/modules', [
+            ModuleController::class,
+            'index',
+        ]);
+
+        Route::get('/company/modules', [
+            ModuleController::class,
+            'companyModules',
+        ]);
+
+        Route::post('/company/modules/{module}/enable', [
+            ModuleController::class,
+            'enable',
+        ]);
+
+        Route::post('/company/modules/{module}/disable', [
+            ModuleController::class,
+            'disable',
+        ]);
+
+        Route::get('/sections', [
+            SectionController::class,
+            'index',
+        ]);
     });
 });

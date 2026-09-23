@@ -211,7 +211,7 @@ class CompanyModuleService
             );
         }
 
-        if ($company->status !== 'activo') {
+        if ($company->status !== 'activa') {
             throw new RuntimeException(
                 'La empresa no está activa.'
             );
