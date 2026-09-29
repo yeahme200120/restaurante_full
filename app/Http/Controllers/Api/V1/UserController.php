@@ -264,16 +264,59 @@ class UserController extends Controller
                     );
                 }
 
+                /*
+             * Obtener el estado actual ANTES de realizar cualquier modificación.
+             *
+             * El branch se limita a la empresa activa.
+             * El role se limita a la empresa activa.
+             */
+                $oldBranchAssignment = DB::table('user_branch_assignments')
+                    ->join(
+                        'branches',
+                        'branches.id',
+                        '=',
+                        'user_branch_assignments.branch_id'
+                    )
+                    ->where('user_branch_assignments.user_id', $user->id)
+                    ->where('user_branch_assignments.status', 'activa')
+                    ->where('user_branch_assignments.is_default', true)
+                    ->where('branches.company_id', $companyId)
+                    ->select('user_branch_assignments.branch_id')
+                    ->first();
+
+                $oldRoleAssignment = UserRole::query()
+                    ->where('user_id', $user->id)
+                    ->where('company_id', $companyId)
+                    ->where('status', 'activo')
+                    ->first();
+
+                $oldBranchId = $oldBranchAssignment?->branch_id;
+                $oldRoleId = $oldRoleAssignment?->role_id;
+
                 $oldValues = [
                     'name' => $user->name,
                     'email' => $user->email,
                     'phone' => $user->phone,
                     'status' => $user->status,
+                    'company_id' => $companyId,
+                    'branch_id' => $oldBranchId,
+                    'role_id' => $oldRoleId,
                 ];
 
+                /*
+             * Actualización de campos propios del usuario.
+             */
                 $userFields = [];
 
-                foreach (['name', 'email', 'phone', 'status', 'password'] as $field) {
+                foreach (
+                    [
+                        'name',
+                        'email',
+                        'phone',
+                        'status',
+                        'password',
+                    ] as $field
+                ) {
                     if (array_key_exists($field, $validated)) {
                         $userFields[$field] = $validated[$field];
                     }
@@ -283,9 +326,16 @@ class UserController extends Controller
                     $user->update($userFields);
                 }
 
-                $branchId = null;
-                $roleId = null;
+                /*
+             * El estado final parte del estado anterior.
+             * Solo cambia si el request contiene el campo correspondiente.
+             */
+                $branchId = $oldBranchId;
+                $roleId = $oldRoleId;
 
+                /*
+             * Cambio de sucursal.
+             */
                 if (array_key_exists('branch_id', $validated)) {
                     $branch = Branch::query()
                         ->whereKey($validated['branch_id'])
@@ -334,6 +384,9 @@ class UserController extends Controller
                     $branchId = $branch->id;
                 }
 
+                /*
+             * Cambio de rol.
+             */
                 if (array_key_exists('role_id', $validated)) {
                     $role = Role::query()
                         ->whereKey($validated['role_id'])
@@ -346,7 +399,10 @@ class UserController extends Controller
                         );
                     }
 
-                    if ($role->scope !== 'company' || $role->code === 'super_admin') {
+                    if (
+                        $role->scope !== 'company' ||
+                        $role->code === 'super_admin'
+                    ) {
                         throw new \RuntimeException(
                             'El rol seleccionado no puede asignarse a un usuario de empresa.'
                         );
@@ -376,21 +432,18 @@ class UserController extends Controller
                     $roleId = $role->id;
                 }
 
+                /*
+             * Estado final real después de todas las modificaciones.
+             */
                 $newValues = [
                     'name' => $user->name,
                     'email' => $user->email,
                     'phone' => $user->phone,
                     'status' => $user->status,
                     'company_id' => $companyId,
+                    'branch_id' => $branchId,
+                    'role_id' => $roleId,
                 ];
-
-                if ($branchId !== null) {
-                    $newValues['branch_id'] = $branchId;
-                }
-
-                if ($roleId !== null) {
-                    $newValues['role_id'] = $roleId;
-                }
 
                 $auditService->record(
                     action: 'updated',
@@ -436,6 +489,7 @@ class UserController extends Controller
             ], 422);
         }
     }
+
 
     public function destroy(
         User $user,
